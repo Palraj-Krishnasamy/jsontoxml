@@ -1,3 +1,11 @@
+About:
+This project is about to convert your json string into customized xml formats.
+
+Tech stack:
+
+java 1.7x
+maven 3.x
+
 How to compile and install:
 
 it is a maven project , so just clean and install and should be ready !

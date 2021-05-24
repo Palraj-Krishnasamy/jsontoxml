@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<object>
+	<string>sss</string>
+	<booleans name="result">false</booleans>
+	<string name="hihh">Pos</string>
+	<string name="sdd">environment</string>
+	<array name="data">
+		<String name="created">2014-12-04</String>
+		<String name="name">www.jofs</String>
+		<String name="modified">2014-12-04</String>
+		<Long name="id">1</Long>
+		<Long name="userId">1</Long>
+		<array name="items">
+			<array name="links">
+				<String name="abc">d</String>
+			</array>
+			<String name="email">abc@gmail.com</String>
+		</array>
+	</array>
+	<object name="test">
+		<String name="1">f</String>
+		<Boolean name="2">true</Boolean>
+		<object name="innerObj">
+			<String name="s">j</String>
+		</object>
+	</object>
+	<array name="values">
+		<String name="type">text</String>
+		<String name="value">http://ddfd/.com</String>
+		<Boolean name="enabled">true</Boolean>
+		<String name="key">url</String>
+		<String name="type">text</String>
+		<String name="value">s</String>
+		<Boolean name="enabled">true</Boolean>
+		<String name="key">key</String>
+		<String name="type">text</String>
+		<String name="value">sdd</String>
+		<Boolean name="enabled">true</Boolean>
+		<String name="key">J</String>
+	</array>
+	<string name="id" />
+	<string name="k">2018-03-26T09:36:23.193Z</string>
+	<number name="timestamp">1519209142881</number>
+</object>

@@ -114,7 +114,7 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 
 	private void createTag(Object key, Object value, String objectType, Document doc, Element superElelement) {
 		if (!key.toString().isEmpty()) {
-			Element element = doc.createElement(objectType);
+			Element element = doc.createElement(getObejctType(objectType));
 			Attr attr = doc.createAttribute("name");
 			attr.setValue(key.toString());
 			element.setAttributeNode(attr);
@@ -122,7 +122,7 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 			superElelement.appendChild(element);
 
 		} else {
-			Element element = doc.createElement(objectType);
+			Element element = doc.createElement(getObejctType(objectType));
 			element.appendChild(doc.createTextNode(value.toString()));
 			superElelement.appendChild(element);
 
@@ -177,5 +177,26 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 			}
 		}
 	}
+	
+	private String getObejctType(String dataType) {
+		if (dataType.equalsIgnoreCase("Integer") || dataType.equalsIgnoreCase("Long")
+				|| dataType.equalsIgnoreCase("Double") || dataType.equalsIgnoreCase("Float")) {
+			return "number";
+			
+		} else if (dataType.equalsIgnoreCase("Boolean")) {
+			return "boolean";
+
+		} else if (dataType.equalsIgnoreCase("String")) {
+			return "string";
+			
+		} else if (dataType.equalsIgnoreCase("JSONArray") || dataType.equalsIgnoreCase("Array")) {
+			return "array";
+
+		} else {
+			return "object";
+			
+		}
+	}
+	
 
 }

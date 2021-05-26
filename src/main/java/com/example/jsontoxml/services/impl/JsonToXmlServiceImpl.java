@@ -33,7 +33,7 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 	public void convertJsonToXml(File json, File xml) throws ParserConfigurationException, TransformerException {
 		try {
 
-			findJsonObjectType(parseJson(fileService.readFile(json)), xml);
+			generateXml(parseJson(fileService.readFile(json)), xml);
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -56,7 +56,7 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 		return null;
 	}
 
-	private String findJsonObjectType(JSONObject jsonObject, File input)
+	private String generateXml(JSONObject jsonObject, File input)
 			throws ParserConfigurationException, IOException, TransformerException {
 		// XML Configuration
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -69,14 +69,14 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 		for (Object key : jsonObject.keySet()) {
 			if (null != key) {
 				Object value = jsonObject.get(key);
-				
+
 				if (null != value) {
 					String dataType = value.getClass().getSimpleName();
 
 					if (dataType.equalsIgnoreCase("Integer") || dataType.equalsIgnoreCase("Long")
 							|| dataType.equalsIgnoreCase("Double") || dataType.equalsIgnoreCase("Float")) {
-						
-					if (!key.toString().isEmpty())
+
+						if (!key.toString().isEmpty())
 							createTag(key, value, JsonToXmlConverterConstants.NUMBER, doc, rootElement);
 
 					} else if (dataType.equalsIgnoreCase("Boolean")) {
@@ -102,9 +102,15 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 						rootElement.appendChild(objectElement);
 					}
 
+				} else {
+					Element objectElement = doc.createElement("null");
+					Attr attr = doc.createAttribute("name");
+					attr.setValue(key.toString());
+					objectElement.setAttributeNode(attr);
+					rootElement.appendChild(objectElement);
 				}
 			} else {
-				/*null tag yet to be develop*/
+				/* null tag yet to be develop */
 			}
 		}
 		fileService.writeFile(input, doc);
@@ -114,16 +120,16 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 
 	private void createTag(Object key, Object value, String objectType, Document doc, Element superElelement) {
 		if (!key.toString().isEmpty()) {
-			Element element = doc.createElement(getObejctType(objectType));
+			Element element = doc.createElement(getClassName(value));
 			Attr attr = doc.createAttribute("name");
 			attr.setValue(key.toString());
 			element.setAttributeNode(attr);
-			element.appendChild(doc.createTextNode(value.toString()));
+			element.appendChild(doc.createTextNode(String.valueOf(value)));
 			superElelement.appendChild(element);
 
 		} else {
-			Element element = doc.createElement(getObejctType(objectType));
-			element.appendChild(doc.createTextNode(value.toString()));
+			Element element = doc.createElement(getClassName(value));
+			element.appendChild(doc.createTextNode(String.valueOf(value)));
 			superElelement.appendChild(element);
 
 		}
@@ -132,26 +138,40 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 
 	private void createArrayTag(Object value, Document doc, Element arrayElement) {
 		JSONArray arrayValues = (JSONArray) value;
-		
+
 		for (Object object : arrayValues) {
-			JSONObject arrayObject = (JSONObject) object;
-			
-			for (Object arrayKey : arrayObject.keySet()) {
-				Object arrayValue = arrayObject.get(arrayKey);
-				
-				if (!(arrayValue instanceof JSONArray)) {
-					createTag(arrayKey, arrayValue, arrayValue.getClass().getSimpleName(), doc, arrayElement);
-					
+			if (!getClassName(object).equalsIgnoreCase("array")) {
+				if (getClassName(object).equalsIgnoreCase("object")) {
+					JSONObject arrayObject = (JSONObject) object;
+
+					for (Object arrayKey : arrayObject.keySet()) {
+						Object arrayValue = arrayObject.get(arrayKey);
+
+						if (!(arrayValue instanceof JSONArray)) {
+							createTag(arrayKey, arrayValue, getClassName(arrayValue), doc, arrayElement);
+
+						} else {
+							Element arrayInnerElement = doc.createElement(getClassName(arrayValue));
+							createArrayTag(arrayValue, doc, arrayInnerElement);
+							Attr attr = doc.createAttribute("name");
+							attr.setValue(arrayKey.toString());
+							arrayInnerElement.setAttributeNode(attr);
+							arrayElement.appendChild(arrayInnerElement);
+
+						}
+
+					}
 				} else {
-					Element arrayInnerElement = doc.createElement("array");
-					createArrayTag(arrayValue, doc, arrayInnerElement);
-					Attr attr = doc.createAttribute("name");
-					attr.setValue(arrayKey.toString());
-					arrayInnerElement.setAttributeNode(attr);
-					arrayElement.appendChild(arrayInnerElement);
+					createObjectTag(object, doc, arrayElement);
 					
 				}
-
+			} else {
+				Element arrayInnerElement = doc.createElement(getClassName(object));
+				createArrayTag(object, doc, arrayInnerElement);
+				Attr attr = doc.createAttribute("name");
+				attr.setValue(String.valueOf(""));
+				arrayInnerElement.setAttributeNode(attr);
+				arrayElement.appendChild(arrayInnerElement);
 			}
 		}
 
@@ -159,44 +179,53 @@ public class JsonToXmlServiceImpl implements JsonToXmlServiceI {
 
 	private void createObjectTag(Object value, Document doc, Element arrayElement) {
 		JSONObject arrayObject = (JSONObject) value;
-		
+
 		for (Object arrayKey : arrayObject.keySet()) {
 			Object arrayValue = arrayObject.get(arrayKey);
-			
+
 			if (!(arrayValue instanceof JSONObject)) {
-				createTag(arrayKey, arrayValue, arrayValue.getClass().getSimpleName(), doc, arrayElement);
-				
+				createTag(arrayKey, arrayValue, getClassName(arrayValue), doc, arrayElement);
+
 			} else {
-				Element objectInnerElement = doc.createElement("object");
+				Element objectInnerElement = doc.createElement(getClassName(arrayValue));
 				createObjectTag(arrayValue, doc, objectInnerElement);
 				Attr attr = doc.createAttribute("name");
 				attr.setValue(arrayKey.toString());
 				objectInnerElement.setAttributeNode(attr);
 				arrayElement.appendChild(objectInnerElement);
-				
+
 			}
 		}
 	}
-	
+
 	private String getObejctType(String dataType) {
-		if (dataType.equalsIgnoreCase("Integer") || dataType.equalsIgnoreCase("Long")
+		if (dataType == null) {
+			return "null";
+
+		} else if (dataType.equalsIgnoreCase("Integer") || dataType.equalsIgnoreCase("Long")
 				|| dataType.equalsIgnoreCase("Double") || dataType.equalsIgnoreCase("Float")) {
 			return "number";
-			
+
 		} else if (dataType.equalsIgnoreCase("Boolean")) {
 			return "boolean";
 
 		} else if (dataType.equalsIgnoreCase("String")) {
 			return "string";
-			
+
 		} else if (dataType.equalsIgnoreCase("JSONArray") || dataType.equalsIgnoreCase("Array")) {
 			return "array";
 
 		} else {
 			return "object";
-			
+
 		}
 	}
-	
+
+	private String getClassName(Object cls) {
+		if (cls == null)
+			return null;
+		else
+			return getObejctType(cls.getClass().getSimpleName());
+	}
 
 }

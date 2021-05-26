@@ -28,7 +28,7 @@ public class FileServiceImpl implements FileServiceI {
 	stream.read(readContent);
 	stream.close();
 	
-	return new String(readContent);
+	return new String(readContent);//.replaceAll("null", "\"null\"");
 	}
 	catch (Exception e) {
 		e.printStackTrace();
@@ -42,6 +42,7 @@ public class FileServiceImpl implements FileServiceI {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         DOMSource source = new DOMSource(doc);
+        
         StreamResult result = new StreamResult(input);
         transformer.transform(source, result);
 		
